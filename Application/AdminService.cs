@@ -54,8 +54,6 @@ namespace Application
             {
                 await this.itemRepository.AddAsync(item);
             }
-
-            // create auction
         }
     }
 }
