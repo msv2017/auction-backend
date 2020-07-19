@@ -1,0 +1,57 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Domain;
+using MongoDB.Driver;
+
+namespace Data
+{
+    public interface IItemRepository
+    {
+        public Task<List<Item>> GetAllAsync();
+
+        public Task<List<Item>> GetAllByOwnerAsync(User owner);
+
+        public Task<Item> GetByIdAsync(Guid id);
+
+        public Task AddAsync(Item item);
+
+        public Task ReplaceAsync(Item item);
+    }
+
+    public class ItemRepository : IItemRepository
+    {
+        private readonly IMongoCollection<Item> items;
+
+        public ItemRepository(IItemDatabaseSettings settings)
+        {
+            var client = new MongoClient(settings.ConnectionString);
+            var database = client.GetDatabase(settings.DatabaseName);
+
+            this.items = database.GetCollection<Item>(settings.ItemsCollectionName);
+        }
+
+        public async Task<List<Item>> GetAllAsync() =>
+            (await this.items
+                .FindAsync(x => true))
+                .ToList();
+
+        public async Task<List<Item>> GetAllByOwnerAsync(User owner) =>
+            (await this.items
+                .FindAsync(x => x.OwnerId == owner.Id))
+                .ToList();
+
+        public async Task<Item> GetByIdAsync(Guid id) =>
+            (await this.items
+                .FindAsync(x => x.Id == id))
+                .FirstOrDefault();
+
+        public async Task AddAsync(Item item) =>
+            await this.items
+                .InsertOneAsync(item);
+
+        public async Task ReplaceAsync(Item item) =>
+            await this.items
+                .FindOneAndReplaceAsync(x => x.Id == item.Id, item);
+    }
+}
