@@ -2,6 +2,8 @@
 
 ## Pre-requisites
 
+The application built using `.NET Core`. If it is not installed use [installation page](https://dotnet.microsoft.com/download)
+
 The project uses _mongodb_ for persistance. If not installed on local machine please use official [installation guide](https://docs.mongodb.com/manual/installation/) to install it.
 
 To start _mongodb_ instance
