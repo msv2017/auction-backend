@@ -6,9 +6,9 @@ The project uses _mongodb_ for persistance. If not installed on local machine pl
 
 To start _mongodb_ instance
 ```
-mongod --dbpath FOLDER
+mongod --dbpath DIR
 ```
-> where FOLDER could be any folder. It's where _mongodb_ will create databases and store the data.
+> where DIR could be any folder. It's where _mongodb_ will create databases and store the data.
 
 The application expects to have _mongodb_ instance up and running on `mongodb://localhost:27017`.
 
