@@ -2,23 +2,11 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Domain;
+using Domain.Interfaces;
 using MongoDB.Driver;
 
 namespace Data
 {
-    public interface IItemRepository
-    {
-        public Task<List<Item>> GetAllAsync();
-
-        public Task<List<Item>> GetAllByOwnerAsync(User owner);
-
-        public Task<Item> GetByIdAsync(Guid id);
-
-        public Task AddAsync(Item item);
-
-        public Task ReplaceAsync(Item item);
-    }
-
     public class ItemRepository : IItemRepository
     {
         private readonly IMongoCollection<Item> items;

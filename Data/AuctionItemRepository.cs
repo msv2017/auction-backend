@@ -3,27 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Domain;
+using Domain.Interfaces;
 using MongoDB.Driver;
 
 namespace Data
 {
-    public interface IAuctionItemRepository
-    {
-        public Task<List<AuctionItem>> GetAllAsync();
-
-        public Task<List<AuctionItem>> GetAllByOwnerAsync(User owner);
-
-        public Task<AuctionItem> GetByItemIdAsync(Guid id);
-
-        public Task AddAsync(AuctionItem item);
-
-        public Task ReplaceAsync(AuctionItem item);
-
-        Task RemoveAsync(AuctionItem item);
-
-        Task RemoveAllAsync(List<AuctionItem> items);
-    }
-
     public class AuctionItemRepository : IAuctionItemRepository
     {
         private readonly IMongoCollection<AuctionItem> items;

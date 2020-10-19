@@ -1,17 +1,10 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Data;
+﻿using System.Threading.Tasks;
 using Domain;
+using Domain.Interfaces;
 
 namespace Application
 {
-    public interface IAdminService
-    {
-        Task InitializeAsync();
-    }
-
-    public class AdminService: IAdminService
+    public class AdminService : IAdminService
     {
         private readonly IUserRepository userRepository;
         private readonly IItemRepository itemRepository;
@@ -45,12 +38,12 @@ namespace Application
                 new Item("Infinity stones", admin)
             };
 
-            foreach(var user in users)
+            foreach (var user in users)
             {
                 await this.userRepository.AddUserAsync(user);
             }
 
-            foreach(var item in items)
+            foreach (var item in items)
             {
                 await this.itemRepository.AddAsync(item);
             }

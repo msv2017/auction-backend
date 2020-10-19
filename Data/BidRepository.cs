@@ -2,25 +2,11 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Domain;
+using Domain.Interfaces;
 using MongoDB.Driver;
 
 namespace Data
 {
-    public interface IBidRepository
-    {
-        public Task<List<Bid>> GetAllByItemIdAsync(Guid itemId);
-
-        public Task<List<Bid>> GetAllByUserIdAsync(Guid userId);
-
-        public Task AddAsync(Bid bid);
-
-        public Task RemoveAsync(Bid bid);
-
-        public Task ReplaceAsync(Bid bid);
-
-        public Task RemoveAllByItemIdAsync(Guid itemId);
-    }
-
     public class BidRepository : IBidRepository
     {
         private readonly IMongoCollection<Bid> bids;

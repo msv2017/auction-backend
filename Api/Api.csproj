@@ -8,6 +8,9 @@
         <NoWarn>$(NoWarn);1591</NoWarn>
     </PropertyGroup>
     <ItemGroup>
+        <PackageReference Include="AspectCore.Core" Version="2.1.0" />
+        <PackageReference Include="AspectCore.Extensions.DependencyInjection" Version="2.1.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.9" />
         <PackageReference Include="swashbuckle.aspnetcore" Version="5.5.1" />
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.7.1" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.6" />

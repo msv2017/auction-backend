@@ -4,26 +4,16 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using Data;
 using Domain;
 using Domain.Settings;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Options;
 using System.Linq;
+using Domain.Interfaces;
+using Domain.Aop;
 
 namespace Application
 {
-    public interface IUserService
-    {
-        Task<string> AuthenticateAsync(string username, string password);
-
-        Task<List<Item>> GetUserItemsAsync(Guid userId);
-
-        Task<List<AuctionItem>> GetUserAuctionItemsAsync(Guid userId);
-
-        Task<List<Bid>> GetUserBidsAsync(Guid userId);
-    }
-
     public class UserService : IUserService
     {
         private readonly AppSettings appSettings;
@@ -58,6 +48,7 @@ namespace Application
             return GenerateJwtToken(user);
         }
 
+        [Cache]
         public async Task<List<Item>> GetUserItemsAsync(Guid userId)
         {
             var user = await this.userRepository.GetUserByIdAsync(userId);

@@ -2,22 +2,11 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Domain;
+using Domain.Interfaces;
 using MongoDB.Driver;
 
 namespace Data
 {
-    public interface IUserRepository
-    {
-        Task<List<User>> GetAllAysnc();
-
-        Task<User> GetUserAsync(string username, string password);
-
-        Task<User> GetUserByIdAsync(Guid id);
-
-        Task AddUserAsync(User user);
-
-    }
-
     public class UserRepository : IUserRepository
     {
         private readonly IMongoCollection<User> users;

@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
-using Application;
-using Data;
+using AspectCore.Configuration;
+using AspectCore.Extensions.DependencyInjection;
 using Domain;
+using Domain.Aop;
 using Domain.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -33,12 +36,15 @@ namespace Api
 
         public void ConfigureServices(IServiceCollection services)
         {
+
             this.ConfigureDatabaseSettings<IItemDatabaseSettings, ItemDatabaseSettings>(services);
             this.ConfigureDatabaseSettings<IAuctionItemDatabaseSettings, AuctionItemDatabaseSettings>(services);
             this.ConfigureDatabaseSettings<IBidDatabaseSettings, BidDatabaseSettings>(services);
             this.ConfigureDatabaseSettings<IUserDatabaseSettings, UserDatabaseSettings>(services);
 
             this.ConfigureClasses(services);
+
+            services.ConfigureDynamicProxy(configure => configure.Interceptors.AddTyped<CacheAttribute>());
 
             services.AddControllers();
 
@@ -115,14 +121,34 @@ namespace Api
 
         private void ConfigureClasses(IServiceCollection services)
         {
-            services.AddSingleton<IItemRepository, ItemRepository>();
-            services.AddSingleton<IAuctionItemRepository, AuctionItemRepository>();
-            services.AddSingleton<IBidRepository, BidRepository>();
-            services.AddSingleton<IUserRepository, UserRepository>();
+            // Some rules we follow here:
+            // 1. Class should inherit from one interface only
+            // 2. Class should be public and not abstract one
+            // 3. Class name shouldn't end with Settings
+            // 4. Class should belong to Domain, Application or Data namespace
+            // 5. Api project should have reference to Domain, Application and Data projects
 
-            services.AddScoped<IAuctionService, AuctionService>();
-            services.AddScoped<IAdminService, AdminService>();
-            services.AddScoped<IUserService, UserService>();
+            var namespaces = new HashSet<string>() {
+                 nameof(Domain),
+                 nameof(Application),
+                 nameof(Data) };
+
+            var definitions = namespaces
+                .Select(x => Assembly.Load(x))
+                .SelectMany(t => t.GetTypes())
+                .Where(x =>
+                    x.IsClass && x.IsPublic && !x.IsAbstract &&
+                    !x.Name.EndsWith("Settings") &&
+                    namespaces.Contains(x.Namespace) &&
+                    x.GetInterfaces().Length == 1
+                    )
+                .Select(x => new { implementation = x, service = x.GetInterfaces().First() })
+                .ToList();
+
+            foreach (var def in definitions)
+            {
+                services.AddTransient(def.service, def.implementation);
+            }
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -147,7 +173,8 @@ namespace Api
                     var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
                     var exception = exceptionHandlerPathFeature.Error;
 
-                    var result = JsonConvert.SerializeObject(new {
+                    var result = JsonConvert.SerializeObject(new
+                    {
                         message = exception.Message,
                     });
                     context.Response.ContentType = "application/json";
