@@ -4,11 +4,16 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Application.GraphQLQueries;
 using AspectCore.Configuration;
 using AspectCore.Extensions.DependencyInjection;
 using Domain;
 using Domain.Aop;
+using Domain.Interfaces;
 using Domain.Settings;
+using GraphiQl;
+using GraphQL;
+using GraphQL.Types;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -36,7 +41,6 @@ namespace Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-
             this.ConfigureDatabaseSettings<IItemDatabaseSettings, ItemDatabaseSettings>(services);
             this.ConfigureDatabaseSettings<IAuctionItemDatabaseSettings, AuctionItemDatabaseSettings>(services);
             this.ConfigureDatabaseSettings<IBidDatabaseSettings, BidDatabaseSettings>(services);
@@ -46,11 +50,37 @@ namespace Api
 
             services.ConfigureDynamicProxy(configure => configure.Interceptors.AddTyped<CacheAttribute>());
 
-            services.AddControllers();
-
             this.ConfigureJwtAuthentication(services);
 
             this.ConfigureSwagger(services);
+
+            this.ConfigureGraphql(services);
+
+            services.AddControllers();
+        }
+
+        private void ConfigureGraphql(IServiceCollection services)
+        {
+            services.AddTransient<ISchema, GraphQLSchema>();
+            services.AddTransient<IDocumentExecuter, DocumentExecuter>();
+
+            // mutations yet to be implemented
+            //services.AddScoped<IDocumentWriter, DocumentWriter>();
+
+            var resolvers = Assembly.Load(nameof(Application)).GetTypes()
+                .Where(x =>
+                    x.IsClass && x.IsPublic && !x.IsAbstract &&
+                    typeof(IGraphQLQueryResolver).IsAssignableFrom(x))
+                .ToList();
+
+            foreach (var resolver in resolvers)
+            {
+                services.AddTransient(typeof(IGraphQLQueryResolver), resolver);
+            }
+
+            services.AddTransient(
+                typeof(IGraphQLQueryResolver[]),
+                provider => provider.GetServices<IGraphQLQueryResolver>());
         }
 
         private void ConfigureSwagger(IServiceCollection services)
@@ -153,6 +183,8 @@ namespace Api
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseGraphiQl();
+
             app.UseSwagger();
 
             app.UseSwaggerUI(c =>
